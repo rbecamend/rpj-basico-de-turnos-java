@@ -29,6 +29,10 @@ public class Turno {
         Scanner scanner = new Scanner(System.in);
 
         for (Player jogador : jogadores) {
+            if (jogoAcabou(herois, monstros)) {
+                return;
+            }
+
             if (jogador.getHp() <= 0) {
                 log.registrar(jogador.getNome() + " está incapacitado e não pode agir!");
                 continue;
@@ -110,5 +114,17 @@ public class Turno {
             case CRITICAL_HIT -> mensagem + "CRÍTICO! HP: " + hpAtual + "/" + hpMax;
             default -> mensagem + "Ação realizada";
         };
+    }
+
+    private boolean jogoAcabou(List<Hero> herois, List<Monster> monstros) { //verifica se ainda existem personagens vivos, não apenas se as listas estão vazias
+        return !existeHeroiVivo(herois) || !existeMonstroVivo(monstros);
+    }
+
+    private boolean existeHeroiVivo(List<Hero> herois) {
+        return herois.stream().anyMatch(h -> h.getHp() > 0);
+    }
+
+    private boolean existeMonstroVivo(List<Monster> monstros) {
+        return monstros.stream().anyMatch(m -> m.getHp() > 0);
     }
 }

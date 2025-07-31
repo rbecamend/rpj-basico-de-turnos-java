@@ -11,6 +11,7 @@ public class Game {
     private final List<Monster> monstros = new ArrayList<>();
     private final Log log = new Log();
     private final int dificuldade;
+    private int monstrosDerrotados = 0;
 
     public Game(int dificuldade) {
         this.dificuldade = dificuldade;
@@ -64,7 +65,7 @@ public class Game {
     }
 
     public void gerarMonstros() {
-        int quantidade = 3 + dificuldade;
+        int quantidade = 1 + dificuldade;
 
         List<Class<? extends Monster>> classes = Arrays.asList(
                 Goblin.class, Orc.class, Dragao.class,
@@ -107,9 +108,15 @@ public class Game {
             Turno turnoAtual = new Turno(todosJogadores, log);
             turnoAtual.executar(herois, monstros);
 
-            // Remover mortos
+            // Remover mortos e contar monstros derrotados
             herois.removeIf(h -> h.getHp() <= 0);
-            monstros.removeIf(m -> m.getHp() <= 0);
+            monstros.removeIf(m -> {
+                if (m.getHp() <= 0) {
+                    monstrosDerrotados++;
+                    return true;
+                }
+                return false;
+            });
 
             // Mostrar status resumido
             System.out.println("\nStatus após o turno:");
@@ -121,9 +128,11 @@ public class Game {
                     .map(m -> m.getNome() + " (" + m.getHp() + "/" + m.getMaxHp() + ")")
                     .collect(Collectors.joining(", ")));
 
+            if (jogoAcabou()) {
+                break;
+            }
             turno++;
         }
-
         terminarJogo();
     }
 
@@ -152,11 +161,11 @@ public class Game {
 
         log.registrar("\nRESUMO FINAL:");
         log.registrar("Heróis sobreviventes: " + herois.size());
-        log.registrar("Monstros derrotados: " + monstros.size());
+        log.registrar("Monstros derrotados: " + monstrosDerrotados );
 
         System.out.println("\nResumo Final:");
         System.out.println("Heróis sobreviventes: " + herois.size());
-        System.out.println("Monstros derrotados: " + monstros.size());
+        System.out.println("Monstros derrotados: " + monstrosDerrotados);
 
         while (true) {
             System.out.println("\nDeseja visualizar o log completo da batalha?");
