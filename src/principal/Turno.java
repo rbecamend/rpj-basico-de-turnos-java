@@ -25,82 +25,90 @@ public class Turno {
         jogadores.sort(Comparator.comparingInt(Player::getVelocidade).reversed());
     }
 
-public void executar(List<Hero> herois, List<Monster> monstros) {
-    Scanner scanner = new Scanner(System.in);
-    
-    for (Player jogador : jogadores) {
-        if (jogador.getHp() <= 0) continue;  // Ignora jogadores mortos
-        
-        if (jogador instanceof Hero hero) {
-            if (monstros.isEmpty()) continue;
+    public void executar(List<Hero> herois, List<Monster> monstros) {
+        Scanner scanner = new Scanner(System.in);
 
-            System.out.println("\n\n----- Turno de " + hero.getNome() + " -----");
-            System.out.println("Escolha um monstro para atacar:");
+        for (Player jogador : jogadores) {
+            if (jogador.getHp() <= 0) {
+                log.registrar(jogador.getNome() + " está incapacitado e não pode agir!");
+                continue;
+            }
 
-            // Exibir os monstros restantes
-            for (int i = 0; i < monstros.size(); i++) {
-                Monster monstro = monstros.get(i);
-                if (monstro.getHp() > 0) {
-                    System.out.println((i + 1) + ". " + monstro.getNome() + " - HP: " + monstro.getHp());
+            if (jogador instanceof Hero hero) {
+                if (monstros.isEmpty()) continue;
+
+                System.out.println("\n----- Turno de " + hero.getNome() + " -----");
+                System.out.println("Escolha um monstro para atacar:");
+
+                // Exibir os monstros restantes
+                for (int i = 0; i < monstros.size(); i++) {
+                    Monster monstro = monstros.get(i);
+                    if (monstro.getHp() > 0) {
+                        System.out.println((i + 1) + ". " + monstro.getNome() +
+                                " - HP: " + monstro.getHp() + "/" + monstro.getMaxHp());
+                    }
+                }
+
+                Monster alvo = null;
+                while (alvo == null) {
+                    System.out.print("Digite o número do monstro: ");
+                    try {
+                        int escolha = scanner.nextInt() - 1;
+                        if (escolha >= 0 && escolha < monstros.size()) {
+                            alvo = monstros.get(escolha);
+                            if (alvo.getHp() <= 0) {
+                                System.out.println("Este monstro já está derrotado!");
+                                alvo = null;
+                            }
+                        } else {
+                            System.out.println("Número inválido!");
+                        }
+                    } catch (Exception e) {
+                        System.out.println("Entrada inválida! Digite um número.");
+                        scanner.next(); // Limpar buffer
+                    }
+                }
+
+                System.out.println("Alvo selecionado: " + alvo.getNome());
+                ResultadoAtaque resultado = hero.realizarAtaque(alvo);
+
+                String mensagem = gerarMensagemAtaque(hero, alvo, resultado);
+                log.registrar(mensagem);
+                System.out.println(">>> " + mensagem);
+
+            } else if (jogador instanceof Monster monstro) {
+                if (herois.isEmpty()) continue;
+
+                log.registrar("\n----- Turno de " + monstro.getNome() + " -----");
+                Player alvo = monstro.escolherAlvo(herois);
+
+                if (alvo != null && alvo.getHp() > 0) {
+                    ResultadoAtaque resultado = monstro.realizarAtaque(alvo);
+                    String mensagem = gerarMensagemAtaque(monstro, alvo, resultado);
+                    log.registrar(mensagem);
+                    System.out.println(">>> " + mensagem);
                 }
             }
-            
-            int escolhaMonstro = -1;
-            while (escolhaMonstro < 1 || escolhaMonstro > monstros.size()) {
-                System.out.print("Digite o número do monstro a atacar: ");
-                escolhaMonstro = scanner.nextInt();
-                if (escolhaMonstro < 1 || escolhaMonstro > monstros.size() || monstros.get(escolhaMonstro - 1).getHp() <= 0) {
-                    System.out.println("Escolha inválida! Tente novamente.");
-                }
-            }
-            
-            Monster alvo = monstros.get(escolhaMonstro - 1);
-            System.out.println("Escolhido: " + alvo.getNome());
 
-            // Escolher ataque
-            System.out.println("Escolha o ataque para " + hero.getNome() + ":");
-            System.out.println("1. Ataque Básico");
-            System.out.println("2. Habilidade Especial");
-            int escolhaAtaque = scanner.nextInt();
-
-            // Realizar ataque
-            ResultadoAtaque resultado = null;
-            switch (escolhaAtaque) {
-                case 1:
-                    resultado = hero.realizarAtaque(alvo);
-                    break;
-                case 2:
-                    // Chama a habilidade especial
-                    break;
-                default:
-                    System.out.println("Opção inválida! Realizando ataque básico.");
-                    resultado = hero.realizarAtaque(alvo);
-                    break;
-            }
-
-            // Registrar resultado do ataque
-            log.registrar(gerarMensagemAtaque(hero, alvo, resultado));
-
-        } else if (jogador instanceof Monster monstro) {
-            if (herois.isEmpty()) continue;
-
-            // Turno do monstro (continua sendo automático)
-            Player alvo = monstro.escolherAlvo(herois);
-            if (alvo != null && alvo.getHp() > 0) {
-                ResultadoAtaque resultado = monstro.realizarAtaque(alvo);
-                log.registrar(gerarMensagemAtaque(monstro, alvo, resultado));
+            // Pausa para leitura
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
             }
         }
     }
-}
 
     private String gerarMensagemAtaque(Player atacante, Player alvo, ResultadoAtaque resultado) {
-        String mensagem = atacante.getNome() + " ataca " + alvo.getNome();
+        String mensagem = atacante.getNome() + " ataca " + alvo.getNome() + ": ";
+        int hpAtual = alvo.getHp();
+        int hpMax = alvo.getMaxHp();
+
         return switch (resultado) {
-            case ERROU -> mensagem + " e errou!";
-            case ACERTOU -> mensagem + " e causou dano! HP restante: " + alvo.getHp();
-            case CRITICAL_HIT -> mensagem + " com CRÍTICO! HP restante: " + alvo.getHp();
-            default -> mensagem;
+            case ERROU -> mensagem + "ERROU!";
+            case ACERTOU -> mensagem + "ACERTOU! HP: " + hpAtual + "/" + hpMax;
+            case CRITICAL_HIT -> mensagem + "CRÍTICO! HP: " + hpAtual + "/" + hpMax;
+            default -> mensagem + "Ação realizada";
         };
     }
 }
