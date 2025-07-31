@@ -33,8 +33,6 @@ public class Main {
                 case 2:
                     System.out.println("\nAté a próxima aventura!");
                     System.exit(0);
-                default:
-                    System.out.println("Opção inválida! Digite 1 ou 2.");
             }
         }
     }

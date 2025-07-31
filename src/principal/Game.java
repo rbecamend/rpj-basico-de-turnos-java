@@ -128,10 +128,14 @@ public class Game {
     }
 
     private boolean jogoAcabou() {
-        return herois.isEmpty() || monstros.isEmpty();
+        boolean todosMonstrosMortos = monstros.stream().allMatch(m -> m.getHp() <= 0);
+        boolean todosHeroisMortos = herois.stream().allMatch(h -> h.getHp() <= 0);
+        return todosMonstrosMortos || todosHeroisMortos;
     }
 
     private void terminarJogo() {
+        Scanner scanner = new Scanner(System.in);
+
         if (herois.isEmpty()) {
             log.registrar("\n=== FIM DE JOGO ===");
             log.registrar("MONSTROS VENCERAM!");
@@ -154,26 +158,56 @@ public class Game {
         System.out.println("Heróis sobreviventes: " + herois.size());
         System.out.println("Monstros derrotados: " + monstros.size());
 
-        Scanner scanner = new Scanner(System.in);
-        System.out.println("\nDeseja visualizar o log completo da batalha? (S/N)");
-        String escolha = scanner.next();
+        while (true) {
+            System.out.println("\nDeseja visualizar o log completo da batalha?");
+            System.out.println("1. Sim");
+            System.out.println("2. Não");
+            System.out.print("Escolha: ");
 
-        if (escolha.equalsIgnoreCase("S")) {
-            System.out.println("\n===== LOG COMPLETO DA BATALHA =====");
-            log.imprimirLog();
+            int escolha;
+            try {
+                escolha = scanner.nextInt();
+            } catch (Exception e) {
+                System.out.println("Entrada inválida! Digite 1 ou 2.");
+                scanner.next(); // limpa a entrada inválida
+                continue;
+            }
+
+            if (escolha == 1) {
+                System.out.println("\n===== LOG COMPLETO DA BATALHA =====");
+                log.imprimirLog();
+                break;
+            } else if (escolha == 2) {
+                break;
+            } else {
+                System.out.println("Opção inválida! Digite 1 ou 2.");
+            }
         }
 
-        String opcao;
-        do {
-            System.out.println("\nDeseja voltar ao menu principal? (S/N)");
-            opcao = scanner.next().toUpperCase();
-        } while (!opcao.equals("S") && !opcao.equals("N"));
+        while (true) {
+            System.out.println("\nDeseja voltar ao menu principal?");
+            System.out.println("1. Sim");
+            System.out.println("2. Não");
+            System.out.print("Escolha: ");
 
-        if (opcao.equals("S")) {
-            Main.main(new String[]{});
-        } else {
-            System.out.println("\nObrigada por jogar! Até a próxima.");
-            System.exit(0);
+            int opcao;
+            try {
+                opcao = scanner.nextInt();
+            } catch (Exception e) {
+                System.out.println("Entrada inválida! Digite 1 ou 2.");
+                scanner.next();
+                continue;
+            }
+
+            if (opcao == 1) {
+                Main.main(new String[]{});
+                break;
+            } else if (opcao == 2) {
+                System.out.println("\nObrigada por jogar! Até a próxima.");
+                System.exit(0);
+            } else {
+                System.out.println("Opção inválida! Digite 1 ou 2.");
+            }
         }
     }
 }
