@@ -65,7 +65,7 @@ public class Game {
     }
 
     public void gerarMonstros() {
-        int quantidade = 1 + dificuldade;
+        int quantidade = 3 + dificuldade;
 
         List<Class<? extends Monster>> classes = Arrays.asList(
                 Goblin.class, Orc.class, Dragao.class,
